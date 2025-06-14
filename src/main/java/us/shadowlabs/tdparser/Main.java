@@ -1,8 +1,16 @@
 package us.shadowlabs.tdparser;
 import org.apache.commons.cli.*;
 
+import us.shadowlabs.tdparser.antlr.TeradataLexer;
+import us.shadowlabs.tdparser.antlr.TeradataParser;
+
 import java.io.*;
 import java.util.Scanner;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 /**
  * This is just a simple little class to get some information that I want.
@@ -46,6 +54,26 @@ public class Main {
         int failCount = 0;
         int processCount = 0;
         while (s.hasNext()) {
+            String sql = s.next().trim();
+            try {
+                CharStream input = CharStreams.fromString(sql);
+                TeradataLexer lexer = new TeradataLexer(input);
+                CommonTokenStream tokens = new CommonTokenStream(lexer);
+                TeradataParser parser = new TeradataParser(tokens);
+
+                ParseTree tree = parser.parse(); // or your grammar's root rule
+                
+                String ast = tree.toStringTree(parser);
+
+                pw.println("---- SQL Query " + (processCount + 1) + " ----");
+                pw.println(sql);
+                pw.println("---- AST ----");
+                pw.println(ast);
+                pw.println();
+            } catch (Exception ex) {
+                failCount++;
+                pw.println("Error parsing query: " + ex.getMessage());
+            }
             processCount++;
         }
         pw.close();

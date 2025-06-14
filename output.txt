@@ -1,0 +1,8 @@
+---- SQL Query 1 ----
+CREATE USER
+   Joe_Smith AS PERM = 1e6, PASSWORD=JoePassword,
+   CONSTRAINT = Classification_Level (Secret, Unclassified DEFAULT),
+   CONSTRAINT = Classification_Country (US, UK, GER);
+---- AST ----
+(parse (sql_stmt_list (sql_stmt (ddl_stmt (create_procedure comment CREATE comment USER Joe_Smith AS PERM = 1e6 , PASSWORD = JoePassword , CONSTRAINT = Classification_Level ( Secret , Unclassified DEFAULT ) , CONSTRAINT = Classification_Country ( US , UK , GER )))) ; comment) <EOF>)
+
