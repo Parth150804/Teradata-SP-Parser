@@ -1,0 +1,48 @@
+$antlrJar = ".\antlr-4.7-complete.jar"
+$grammarDir = "src\main\antlr"
+$outputDir = "generated\us\shadowlabs\tdparser\antlr"
+New-Item -ItemType Directory -Force -Path $outputDir
+
+# Generate Java classes from Teradata.g4
+java -cp $antlrJar org.antlr.v4.Tool `
+  -o $outputDir `
+  -visitor -long-messages `
+  -package us.shadowlabs.tdparser.antlr `
+  "$grammarDir\Teradata.g4"
+
+
+
+# Include antlr, lib jars, and output directory
+$antlrJar = ".\antlr-4.7-complete.jar"
+$libJars = (Get-ChildItem -Recurse -Filter *.jar -Path .\lib | ForEach-Object { $_.FullName }) -join ";"
+$cp = ".\generated;.\src\main\java;$antlrJar;$libJars"
+
+# Compile
+javac -cp $cp -d out `
+    (Get-ChildItem -Recurse -Include *.java -Path .\src\main\java).FullName `
+    + (Get-ChildItem -Recurse -Include *.java -Path .\generated).FullName
+
+
+
+# Final classpath
+$cp = ".\out;$antlrJar;$libJars"
+
+# Run your program with arguments
+java -cp $cp us.shadowlabs.tdparser.Main -i test_sql\tdsql.sql -o output.txt
+
+
+
+
+
+# Create manifest file
+"Main-Class: us.shadowlabs.tdparser.Main" | Set-Content manifest.txt
+
+# Bundle all .class and dependency jars
+jar cfm tdparser-all.jar manifest.txt -C out . `
+    -C lib . `
+    -C generated .
+
+# Run
+java -jar tdparser-all.jar -i test_sql\tdsql.sql -o output.txt
+
+
